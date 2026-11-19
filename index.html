@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ayush Dixit | Backend Developer & AI Enthusiast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0000;
+      --bg2: #120202;
+      --card: #1a0404;
+      --card2: #240808;
+      --accent: #ff3b3b;
+      --accent2: #cc0000;
+      --accent3: #ff6666;
+      --text: #f0e6e6;
+      --muted: #a07a7a;
+      --border: rgba(255, 59, 59, 0.25);
+      --glow: rgba(255, 59, 59, 0.4);
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* TERMINAL */
+    #terminal {
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      color: #ff4444;
+      font-family: var(--font-mono);
+      padding: 3rem;
+      font-size: 1rem;
+      z-index: 9999;
+      display: flex;
+      align-items: flex-start;
+      transition: opacity 0.6s ease;
+    }
+    #terminal.fade-out { opacity: 0; pointer-events: none; }
+    .term-content { display: flex; flex-direction: column; gap: 0.5rem; }
+    .term-line {
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      white-space: pre-wrap;
+    }
+    .term-line.visible { opacity: 1; transform: none; }
+    .term-prompt { color: #ff6666; }
+    .term-ok { color: #ff4444; font-weight: 700; }
+
+    /* NAV */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(10, 0, 0, 0.85);
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .nav.visible { opacity: 1; transform: translateY(0); }
+    .logo {
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+    }
+    .logo span { color: var(--accent); text-shadow: 0 0 8px var(--glow); }
+    .links { display: flex; gap: 2rem; }
+    .links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      font-family: var(--font-mono);
+    }
+    .links a:hover { color: var(--accent); text-shadow: 0 0 5px var(--glow); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+      padding: 7rem 3rem 3rem;
+      position: relative;
+      overflow: hidden;
+      gap: 2rem;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.2s;
+    }
+    .hero.visible { opacity: 1; }
+    .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(255, 59, 59, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 59, 59, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: float 8s ease-in-out infinite;
+    }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 59, 59, 0.15), transparent 70%); top: -100px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(204, 0, 0, 0.12), transparent 70%); bottom: 0; left: 20%; animation-delay: -3s; }
+    @keyframes float { 0%,100%{ transform: translateY(0) scale(1); } 50%{ transform: translateY(-30px) scale(1.05); } }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.2rem;
+      text-shadow: 0 0 6px var(--glow);
+    }
+    .hero-content h1 {
+      font-size: clamp(3.5rem, 7vw, 6rem);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    .outline-text {
+      -webkit-text-stroke: 2px var(--accent);
+      color: transparent;
+      text-shadow: none;
+    }
+    .typing-wrap {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+    }
+    .cursor { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .hero-desc { color: var(--muted); font-size: 1rem; margin-bottom: 2rem; max-width: 480px; }
+    .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.8rem;
+      border-radius: 4px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      border: none;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255, 59, 59, 0.5); }
+    .btn.outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+    .btn.outline:hover { background: rgba(255, 59, 59, 0.1); box-shadow: 0 8px 20px rgba(255, 59, 59, 0.2); }
+    .hero-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+    .stat span { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--accent); text-shadow: 0 0 6px var(--glow); }
+    .stat small { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+    .hero-visual { position: relative; z-index: 1; display: flex; justify-content: center; }
+    .code-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 15px rgba(255,59,59,0.1);
+      animation: float 8s ease-in-out infinite;
+    }
+    .code-header { padding: 0.8rem 1rem; background: rgba(255,255,255,0.02); display: flex; gap: 0.4rem; align-items: center; border-bottom: 1px solid var(--border); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #febc2e; }
+    .dot.g { background: #28c840; }
+    .code-title { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); margin-left: 0.5rem; }
+    .code-body { padding: 1.2rem 1.5rem; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.8; color: #c0a0a0; overflow-x: auto; }
+    .kw { color: #ff8080; }
+    .cl { color: #ffb347; }
+    .fn { color: #86efac; }
+    .st { color: #fbbf24; }
+
+    /* SECTIONS */
+    .section { padding: 6rem 3rem; }
+    .dark-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 3rem;
+    }
+    .about-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 4rem; align-items: start; }
+    .about-text p { color: var(--muted); margin-bottom: 1.2rem; font-size: 0.98rem; }
+    .about-text strong { color: var(--accent); }
+    .about-badges { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid rgba(255, 59, 59, 0.3);
+      border-radius: 2px;
+      color: var(--accent);
+      background: rgba(255, 59, 59, 0.08);
+    }
+    .skills-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+    .skill-group h4 { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 0.6rem; text-transform: uppercase; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .skill-tags span {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.3rem 0.8rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+    .skill-tags span:hover { border-color: var(--accent); color: var(--accent); }
+    .timeline { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 2rem; }
+    .timeline::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--accent), transparent); opacity: 0.4; }
+    .timeline-item { display: grid; grid-template-columns: 160px 1fr; gap: 2rem; position: relative; padding-bottom: 3rem; cursor: pointer; transition: transform 0.2s; }
+    .timeline-item:hover { transform: translateX(6px); }
+    .timeline-dot { position: absolute; left: -2rem; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px rgba(255, 59, 59, 0.8); transform: translateX(-4px); }
+    .timeline-meta { display: flex; flex-direction: column; gap: 0.3rem; padding-top: 0.3rem; }
+    .timeline-date { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); }
+    .timeline-location { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+    .timeline-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1.4rem 1.6rem; transition: all 0.2s; }
+    .timeline-card:hover { border-color: var(--accent); }
+    .timeline-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+    .timeline-card h3 { font-size: 1.05rem; font-weight: 700; }
+    .company-tag { font-family: var(--font-mono); font-size: 0.68rem; padding: 0.2rem 0.7rem; background: rgba(255, 59, 59, 0.12); border: 1px solid rgba(255, 59, 59, 0.3); border-radius: 2px; color: var(--accent); }
+    .timeline-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem; }
+    .tl-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .tl-tags span { font-family: var(--font-mono); font-size: 0.65rem; padding: 0.2rem 0.6rem; background: var(--card2); border-radius: 2px; color: var(--muted); }
+
+    /* PROJECTS */
+    .project-featured { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 4rem; position: relative; cursor: pointer; transition: all 0.2s; }
+    .project-featured:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 10px 30px rgba(255,59,59,0.15); }
+    .project-featured::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .project-featured-badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent); padding: 0.8rem 1.5rem; border-bottom: 1px solid var(--border); background: rgba(255, 59, 59, 0.04); }
+    .project-featured-inner { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0; }
+    .project-featured-text { padding: 2rem 2.5rem; border-right: 1px solid var(--border); }
+    .project-featured-text h3 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.2rem; color: var(--accent); }
+    .project-subtitle { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 1.2rem; }
+    .project-bullets { list-style: none; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .project-bullets li { font-size: 0.85rem; color: var(--muted); padding-left: 1.2rem; position: relative; }
+    .project-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+    .project-stack { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .project-stack span { font-family: var(--font-mono); font-size: 0.68rem; padding: 0.3rem 0.75rem; background: rgba(255, 59, 59, 0.1); border: 1px solid rgba(255, 59, 59, 0.2); border-radius: 3px; color: var(--accent); }
+    .astra-diagram { position: relative; width: 220px; height: 220px; margin: 0 auto; }
+    .astra-core { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 80px; height: 80px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #fff; box-shadow: 0 0 30px rgba(255, 59, 59, 0.6); animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{ box-shadow:0 0 20px rgba(255,59,59,0.5); } 50%{ box-shadow:0 0 45px rgba(255,59,59,0.9); } }
+    .astra-orbit { position: absolute; inset: 0; border-radius: 50%; border: 1px dashed rgba(255, 59, 59, 0.3); animation: spin 12s linear infinite; }
+    .astra-node { position: absolute; font-family: var(--font-mono); font-size: 0.62rem; padding: 0.25rem 0.5rem; background: var(--card2); border: 1px solid var(--border); border-radius: 3px; color: var(--accent); white-space: nowrap; }
+    .n1 { top: 0; left: 50%; transform: translate(-50%, -50%); }
+    .n2 { right: 0; top: 50%; transform: translate(50%, -50%); }
+    .n3 { bottom: 0; left: 50%; transform: translate(-50%, 50%); }
+    .n4 { left: 0; top: 50%; transform: translate(-50%, -50%); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+    .mini-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1.4rem 1.5rem; transition: all 0.2s; cursor: pointer; }
+    .mini-card:hover { border-color: var(--accent); transform: translateY(-4px); background: var(--card2); box-shadow: 0 5px 20px rgba(255,59,59,0.1); }
+    .mini-icon { font-size: 1.4rem; margin-bottom: 0.8rem; }
+    .mini-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--accent); }
+    .mini-card p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; }
+    .mini-stack span { font-family: var(--font-mono); font-size: 0.62rem; padding: 0.2rem 0.5rem; background: var(--card2); border-radius: 2px; color: var(--muted); margin-right: 0.3rem; display: inline-block; }
+    
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+    .modal.active { display: flex; animation: fadeInModal 0.3s ease; }
+    @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+    .modal-content {
+      background: var(--card);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,59,59,0.2);
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 2rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--accent); }
+    .modal h2 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--accent); }
+    .modal-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 1.2rem; }
+    .modal-tags span { font-family: var(--font-mono); font-size: 0.7rem; padding: 0.2rem 0.7rem; background: rgba(255, 59, 59, 0.15); border-radius: 20px; color: var(--accent); }
+    .modal p { color: var(--text); margin-bottom: 1rem; line-height: 1.7; }
+    .modal ul { margin-left: 1.5rem; margin-bottom: 1rem; color: var(--muted); }
+    .modal li { margin-bottom: 0.4rem; }
+    .photo-gallery {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+    .gallery-img {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      transition: transform 0.2s;
+      cursor: pointer;
+      background: #2a0a0a;
+    }
+    .gallery-img:hover { transform: scale(1.02); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+    .img-placeholder {
+      width: 180px;
+      height: 180px;
+      background: linear-gradient(135deg, #2a0a0a, #1a0404);
+      border-radius: 8px;
+      border: 1px dashed var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+    .img-placeholder i { font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent); }
+
+    .contact-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+    .contact-item { display: flex; align-items: center; gap: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.8rem; text-decoration: none; transition: all 0.2s; min-width: 240px; }
+    .contact-item:hover { border-color: var(--accent); transform: translateY(-2px); background: rgba(255,59,59,0.05); }
+    .contact-icon { font-size: 1.4rem; width: 42px; height: 42px; background: rgba(255, 59, 59, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+    .contact-item small { font-family: var(--font-mono); font-size: 0.62rem; color: var(--muted); text-transform: uppercase; }
+    .contact-item p { font-size: 0.82rem; color: var(--text); }
+    .footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in-view { opacity: 1; transform: none; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; text-align: center; padding: 6rem 1.5rem 3rem; }
+      .hero-visual { display: none; }
+      .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .timeline-item { grid-template-columns: 1fr; gap: 0.5rem; }
+      .project-featured-inner { grid-template-columns: 1fr; }
+      .project-featured-visual { display: none; }
+      .mini-grid { grid-template-columns: repeat(2, 1fr); }
+      .section { padding: 4rem 1.5rem; }
+      .nav { padding: 1rem 1.5rem; }
+    }
+    @media (max-width: 580px) {
+      .mini-grid { grid-template-columns: 1fr; }
+      .contact-links { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="terminal">
+  <div class="term-content">
+    <p class="term-line" id="t1"><span class="term-prompt">ayush@redfox:~$</span> whoami</p>
+    <p class="term-line hidden-line" id="t2">Ayush Dixit | Backend Dev | AI/ML Architect | Social Changemaker</p>
+    <p class="term-line hidden-line" id="t3"><span class="term-prompt">ayush@redfox:~$</span> ./ignite_portfolio.sh</p>
+    <p class="term-line hidden-line" id="t4"><span class="term-ok">[🔥]</span> Initializing crimson modules...</p>
+    <p class="term-line hidden-line" id="t5"><span class="term-ok">[🔥]</span> ASTRA core online · neural link active</p>
+    <p class="term-line hidden-line" id="t6"><span class="term-ok">[🔥]</span> Portfolio ready. Launching interface...</p>
+  </div>
+</div>
+
+<nav class="nav" id="main-nav">
+  <a href="#home" class="logo">AYUSH<span>.</span></a>
+  <div class="links">
+    <a href="#about">About</a>
+    <a href="#experience">Experience</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<section class="hero" id="home">
+  <div class="hero-bg"><div class="grid-overlay"></div><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+  <div class="hero-content">
+    <div class="hero-tag">&lt; B.Tech CSE · UPES Dehradun · CGPA 7.1 /&gt;</div>
+    <h1>Ayush<br><span class="outline-text">Dixit</span></h1>
+    <div class="typing-wrap">&gt;&nbsp;<span class="typing"></span><span class="cursor">_</span></div>
+    <p class="hero-desc">Scalable backends · Intelligent agents · Code with fire, heart with purpose.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#projects">Explore Work</a>
+      <a class="btn outline" href="#" id="downloadResumeBtn">Download CV</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span>7.1</span><small>CGPA</small></div>
+      <div class="stat"><span>3+</span><small>Internships</small></div>
+      <div class="stat"><span>10+</span><small>Projects</small></div>
+      <div class="stat"><span>AIR 266</span><small>Ganit Challenge</small></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="code-card"><div class="code-header"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">astra_core.py</span></div>
+    <pre class="code-body"><span class="kw">class</span> <span class="cl">ASTRA</span>:
+  <span class="kw">def</span> <span class="fn">__init__</span>(self):
+    self.name   = <span class="st">"ASTRA"</span>
+    self.mode   = <span class="st">"autonomous"</span>
+    self.vision = <span class="kw">True</span>
+    self.memory = <span class="cl">NeuralCore</span>()
+
+  <span class="kw">def</span> <span class="fn">execute</span>(self, task):
+    <span class="kw">if</span> self.<span class="fn">auth_face</span>():
+      <span class="kw">return</span> self.<span class="fn">process</span>(task)
+
+ai = <span class="cl">ASTRA</span>()
+ai.<span class="fn">execute</span>(<span class="st">"automate_world"</span>)</pre></div>
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="section-inner">
+    <div class="section-label">01 / About</div>
+    <h2 class="section-title">Who I Am</h2>
+    <div class="about-grid">
+      <div class="about-text"><p>I'm <strong>Ayush Dixit</strong>, a 3rd-year B.Tech CSE student at UPES Dehradun (CGPA 7.1) passionate about building intelligent systems and scalable backends. Interned at <strong>Oriana Power</strong> (AI-powered solar optimization) and <strong>Dream Girl Foundation</strong> (web portals & teaching). I breathe life into ideas — from ASTRA, a semi-autonomous AI assistant, to real-world hackathon projects.</p>
+      <p>School Captain, Technical lead at Cyber Sentinel Club, backend dev for HardWar Hackathon. I speak Hindi, English & basic Japanese. Certifications: AI/ML (Coursera), Toshiba Water Solutions, CSI & CSA hackathons, SIH college selection.</p>
+      <div class="about-badges"><span class="badge">AIR 266 · Aryabhatta Ganit Challenge 2021</span><span class="badge">IMO State Gold Medalist 2016</span><span class="badge">National Science Exhibition 2018</span><span class="badge">Coursera AI/ML Certified</span></div></div>
+      <div class="skills-grid">
+        <div class="skill-group"><h4>Languages</h4><div class="skill-tags"><span>Python</span><span>Java</span><span>JavaScript</span><span>C</span></div></div>
+        <div class="skill-group"><h4>Web & Frontend</h4><div class="skill-tags"><span>HTML/CSS</span><span>Angular</span><span>Bootstrap</span><span>LocalStorage</span></div></div>
+        <div class="skill-group"><h4>AI / ML</h4><div class="skill-tags"><span>Neural Networks</span><span>Deep Learning</span><span>OpenCV</span><span>PyAutoGUI</span><span>NLP</span></div></div>
+        <div class="skill-group"><h4>Tools & DB</h4><div class="skill-tags"><span>MySQL</span><span>MongoDB</span><span>Git/GitHub</span><span>REST APIs</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section dark-section" id="experience">
+  <div class="section-inner">
+    <div class="section-label">02 / Experience</div>
+    <h2 class="section-title">Where I've Worked</h2>
+    <div class="timeline">
+      <div class="timeline-item" id="dreamgirl-exp">
+        <div class="timeline-dot"></div>
+        <div class="timeline-meta"><span class="timeline-date">Jun – Jul 2024</span><span class="timeline-location">Gurgaon, India</span></div>
+        <div class="timeline-card"><div class="timeline-header"><h3>Social Intern & Web Dev</h3><span class="company-tag">Dream Girl Foundation NGO</span></div>
+        <p>Built two portals: tax invoice generator (PAN-based) & donation management system with certificates. Volunteered as teacher, improved staff communication. <strong style="color:var(--accent)">Click to read full journey →</strong></p>
+        <div class="tl-tags"><span>Web Dev</span><span>Teaching</span><span>Social Impact</span><span>Leadership</span></div></div>
+      </div>
+      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-meta"><span class="timeline-date">Jun – Jul 2025</span><span class="timeline-location">Noida, India</span></div><div class="timeline-card"><div class="timeline-header"><h3>AI/Software Intern</h3><span class="company-tag">Oriana Power Limited</span></div><p>AI-powered analysis & optimization of solar power systems delivering data-driven insights.</p><div class="tl-tags"><span>AI/ML</span><span>Data Analysis</span><span>Solar Tech</span></div></div></div>
+      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-meta"><span class="timeline-date">Certified</span><span class="timeline-location">Head Office</span></div><div class="timeline-card"><div class="timeline-header"><h3>Industrial Intern</h3><span class="company-tag">Toshiba Water Solutions</span></div><p>Certificate of internship from Toshiba Water Solutions head office.</p><div class="tl-tags"><span>Industrial</span><span>Certified</span></div></div></div>
+      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-meta"><span class="timeline-date">2023 – Present</span><span class="timeline-location">UPES, Dehradun</span></div><div class="timeline-card"><div class="timeline-header"><h3>Technical Team Member</h3><span class="company-tag">Cyber Sentinel Club</span></div><p>Built CTF event website & backend for flagship HardWar Hackathon.</p><div class="tl-tags"><span>Backend</span><span>CTF</span><span>Hackathon</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="projects">
+  <div class="section-inner">
+    <div class="section-label">03 / Projects</div>
+    <h2 class="section-title">What I've Built</h2>
+    <div class="project-featured" id="project-astra">
+      <div class="project-featured-badge">Flagship Project · Dec 2023 – Present</div>
+      <div class="project-featured-inner"><div class="project-featured-text"><h3>ASTRA</h3><p class="project-subtitle">Autonomous Super Training & Rookies Assistant</p><p>Semi-autonomous AI assistant controlling computer tasks: NLP Q&A, file/program automation via PyAutoGUI, facial recognition for secure access.</p><div class="project-stack"><span>Python</span><span>ML</span><span>Neural Networks</span><span>OpenCV</span><span>PyAutoGUI</span></div></div><div class="project-featured-visual"><div class="astra-diagram"><div class="astra-core">ASTRA</div><div class="astra-orbit"><div class="astra-node n1">NLP</div><div class="astra-node n2">Vision</div><div class="astra-node n3">Auto</div><div class="astra-node n4">Memory</div></div></div></div></div>
+    </div>
+    <h3 class="section-label" style="margin-top:1rem;">More Projects (click for details)</h3>
+    <div class="mini-grid" id="projects-grid"></div>
+  </div>
+</section>
+
+<div id="project-modal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <h2 id="modal-title"></h2>
+    <div id="modal-tags" class="modal-tags"></div>
+    <div id="modal-description"></div>
+  </div>
+</div>
+
+<section class="section dark-section" id="contact">
+  <div class="section-inner contact-inner">
+    <div class="section-label">04 / Connect</div>
+    <h2 class="section-title">Let's Collaborate</h2>
+    <p class="contact-sub">Open to internships, AI/backend roles, and open-source.</p>
+    <div class="contact-links">
+      <a href="mailto:ayushdixit5183@gmail.com" class="contact-item"><span class="contact-icon">✉️</span><div><small>Email</small><p>ayushdixit5183@gmail.com</p></div></a>
+      <a href="https://linkedin.com/in/ayush-dixit-55a79132a" target="_blank" class="contact-item"><span class="contact-icon"><i class="fab fa-linkedin-in"></i></span><div><small>LinkedIn</small><p>ayush-dixit</p></div></a>
+      <a href="https://github.com/Astro518" target="_blank" class="contact-item"><span class="contact-icon"><i class="fab fa-github"></i></span><div><small>GitHub</small><p>Astro518</p></div></a>
+      <a href="tel:9560418150" class="contact-item"><span class="contact-icon">📞</span><div><small>Phone</small><p>+91 95604 18150</p></div></a>
+    </div>
+    <a class="btn" href="#" id="downloadFooterResume" style="margin-top:1rem;display:inline-block;">Download Resume</a>
+  </div>
+</section>
+
+<footer class="footer"><p>Designed & built by Ayush Dixit · 2026 · Red & Black Aesthetic · Click any project or internship for deep dive</p></footer>
+
+<script>
+  // Detailed Dream Girl Foundation Report Modal
+  function showDreamGirlReport() {
+    const modalContent = `
+      <h2 style="color:var(--accent); margin-bottom:0.5rem;">Dream Girl Foundation</h2>
+      <div class="modal-tags"><span>Social Internship</span><span>Web Development</span><span>Teaching</span><span>Community Impact</span></div>
+      <div class="photo-gallery">
+        <img src="image1.jpeg" class="gallery-img" style="width:180px;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--accent);">
+        <img src="image2.jpeg" class="gallery-img" style="width:180px;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--accent);">
+        <img src="image3.jpeg" class="gallery-img" style="width:180px;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--accent);">
+      </div>
+      <p><strong>Introduction:</strong> My two-month social internship at Dream Girl Foundation, under the guidance of Mr. Ankit Madaan, turned out to be an extremely fruitful and transformative journey. Embarking on a social internship offered a unique opportunity to make a tangible impact in the community while gaining valuable insights.</p>
+      <p><strong>Personal Transformation:</strong> I underwent significant personal transformation — working closely with migrants from challenging areas deepened my empathy and understanding. I refined problem-solving and leadership skills by organizing community events.</p>
+      <p><strong>Challenges:</strong> Managing complexities of working with diverse migrant groups required cultural sensitivity. Time management and emotional resilience were tested, but each challenge became a growth opportunity.</p>
+      <p><strong>Focus Area:</strong> Dream Girl Foundation addresses educational inequity, health disparities, and economic development for underprivileged girls. We set up learning centers, provided healthcare camps, and collaborated with corporate partners believing <em>"We only have what we give."</em></p>
+      <p><strong>Immediate Impact:</strong> Improved educational outcomes, enhanced healthcare access via medical camps, economic opportunities through vocational training, and a stronger, self-reliant community.</p>
+      <p><strong>Long-Term Vision:</strong> I aim to develop advanced educational tools using AI and VR, deploy them via NGOs, and break down barriers to quality education globally.</p>
+      <p><strong>Conclusion:</strong> This internship profoundly influenced my perspectives and aspirations, reinforcing my dedication to fostering positive change through education and technology.</p>
+    `;
+    document.getElementById('modal-title').innerHTML = '❤️ Dream Girl Foundation Internship Report';
+    document.getElementById('modal-tags').innerHTML = `<span>Social Impact</span><span>Web Dev</span><span>Teaching</span><span>2 Months</span><span>Gurgaon</span>`;
+    document.getElementById('modal-description').innerHTML = modalContent;
+    document.getElementById('project-modal').classList.add('active');
+}
+function showToshibaReport() {
+    const modalContent = `
+      <h2 style="color:var(--accent); margin-bottom:0.5rem;">🏭 Toshiba Water Solutions Pvt. Ltd.</h2>
+      <div class="modal-tags"><span>Industrial Internship</span><span>Java</span><span>Angular</span><span>PHP</span><span>Eclipse</span><span>Xdebug</span></div>
+      <div class="photo-gallery" id="toshiba-gallery">
+        <div class="img-placeholder" onclick="document.getElementById('toshibaPhotoInput1').click()"><i class="fas fa-camera"></i><br>Click to add photo 1</div>
+        <div class="img-placeholder" onclick="document.getElementById('toshibaPhotoInput2').click()"><i class="fas fa-camera"></i><br>Click to add photo 2</div>
+        <input type="file" id="toshibaPhotoInput1" accept="image/*" style="display:none" onchange="previewToshibaImage(event, 'toshiba-img-1', this)">
+        <input type="file" id="toshibaPhotoInput2" accept="image/*" style="display:none" onchange="previewToshibaImage(event, 'toshiba-img-2', this)">
+      </div>
+      <p><strong>📜 Certificate of Completion of Internship</strong></p>
+      <p><strong>To Whom It May Concern</strong></p>
+      <p>This letter is to certify that <strong>Mr. Ayush Dixit</strong>, B.Tech (CS), 1st year student at UPES, Dehradun has successfully completed <strong>2 weeks Internship training</strong> from <strong>22nd December 2023 to 5th January 2024</strong> with <strong>Toshiba Water Solutions Pvt. Ltd.</strong> at their Head Office.</p>
+      <p><strong>📍 Location:</strong> Pioneer Urban Square, 4th Floor, Tower D, Sector 62, Gurugram-122098, India</p>
+      <p><strong>💻 Learning & Skills Acquired:</strong> During these 2 weeks of training period, he learned about the business application processes and code scripting patterns developed in <strong>Java, Angular, and PHP</strong> languages. Subsequent to the 1st week knowledge transfer sessions, hands-on sessions were delivered on <strong>Xdebug and Eclipse software</strong> to fix real-time front-end application issues.</p>
+      <p><strong>⭐ Performance Assessment:</strong> As per our internal assessment and technical evaluation, we found him <strong>hard-working and an excellent performer</strong> during the training program.</p>
+      <p><strong>🎓 Certification Details:</strong><br>
+      • Certified by: Amit Kumar (Deputy General Manager - IT)<br>
+      • Date: January 2024<br>
+      • ISO Certified: 9001:2015, 14001:2015 & 45001:2018</p>
+      <p>We wish him all the success for his future endeavors.</p>
+      <p style="margin-top:1rem;"><strong>For Toshiba Water Solutions Private Limited</strong><br>
+      <em>Amit Kumar</em><br>
+      Deputy General Manager - IT</p>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:1rem;"><strong>Cert. No. 1/03004</strong> | JAS-ANZ Certified<br>
+      (Formerly Known as UEM India Private Limited)<br>
+      CIN: U51909HR1984PTC083301</p>
+    `;
+    document.getElementById('modal-title').innerHTML = '🏭 Toshiba Water Solutions Internship';
+    document.getElementById('modal-tags').innerHTML = `<span>Industrial Training</span><span>Java</span><span>Angular</span><span>PHP</span><span>Eclipse</span><span>Xdebug</span><span>2 Weeks</span><span>Gurugram</span>`;
+    document.getElementById('modal-description').innerHTML = modalContent;
+    document.getElementById('project-modal').classList.add('active');
+}
+
+// Function to preview Toshiba images
+window.previewToshibaImage = function(event, placeholderId, fileInput) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'gallery-img';
+            img.style.width = '180px';
+            img.style.height = '180px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.border = '1px solid var(--accent)';
+            img.style.margin = '0.5rem';
+            const parent = fileInput.parentElement;
+            const placeholder = parent.querySelector('.img-placeholder');
+            if (placeholder) {
+                placeholder.replaceWith(img);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+  window.previewImage = function(event, placeholderId, fileInput) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'gallery-img';
+        img.style.width = '180px';
+        img.style.height = '180px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '8px';
+        img.style.border = '1px solid var(--accent)';
+        const parent = fileInput.parentElement;
+        const placeholder = parent.querySelector('.img-placeholder');
+        if (placeholder) {
+          placeholder.replaceWith(img);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const projectsData = {
+    astra: { title: "ASTRA - AI Assistant", tags: ["Python", "ML", "Neural Networks", "OpenCV", "PyAutoGUI", "Face Recognition"], desc: `<p><strong>ASTRA (Autonomous Super Training & Rookies Assistant)</strong> is a semi-autonomous AI agent built to take control of a computer and execute human-like tasks. It integrates natural language processing for Q&A, automates file/program management via PyAutoGUI, and uses facial recognition for secure access.</p><ul><li>Automates repetitive OS tasks and browser actions</li><li>Multi-user authentication with facial recognition</li><li>Neural network-backed personalization and memory system</li></ul>` },
+    keylogger: { title: "Keylogger (C)", tags: ["C", "CSV", "Low-level"], desc: `<p>A low-level keystroke logger in C capturing keyboard input to CSV for analysis. Built for understanding input capture and secure logging.</p><ul><li>Real-time keystroke capture</li><li>Timestamps and key codes logging</li></ul>` },
+    anagram: { title: "Anagram Solver", tags: ["Python", "Algorithms"], desc: `<p>Efficient anagram solver using dictionary lookup and sorting for O(1) lookups.</p><ul><li>Custom dictionary support</li><li>Multi-word anagrams</li></ul>` },
+    audiobook: { title: "PDF Audiobook Converter", tags: ["Python", "TTS", "PyPDF2"], desc: `<p>Converts PDF to spoken audiobook using text-to-speech. Extracts text and generates MP3 output.</p><ul><li>Multi-page PDF support</li><li>Adjustable speech rate</li></ul>` },
+    qrgen: { title: "QR Code Generator", tags: ["Python", "qrcode"], desc: `<p>Custom QR code generator for URLs, text, vCard, WiFi config. Customizable colors and sizes.</p><ul><li>Batch generation</li><li>Export to PNG/SVG</li></ul>` },
+    covid: { title: "COVID Desktop Notifier", tags: ["Python", "API", "Notifications"], desc: `<p>Real-time COVID-19 statistics notifications. Fetches live data from trusted APIs.</p><ul><li>Country-specific stats</li><li>Customizable intervals</li></ul>` },
+    checkers: { title: "Checkers Game", tags: ["Python", "Game Logic"], desc: `<p>Fully playable Checkers with move validation, forced captures, king promotions, two-player mode.</p><ul><li>Complete rule implementation</li><li>Undo/redo support</li></ul>` },
+    fitpulse: { title: "FIT PULSE", tags: ["HTML", "CSS", "JavaScript", "LocalStorage"], desc: `<p>Fitness tracking web app with activity logging, nutrition, BMI calculator, XP/levels/badges gamification.</p><ul><li>Track workouts, meals, water</li><li>Data persistence with LocalStorage</li></ul>` }
+  };
+
+  const miniProjects = [
+    { id: "keylogger", name: "Keylogger", icon: "⌨️", shortDesc: "Low-level keystroke logger in C.", stack: ["C", "CSV"] },
+    { id: "anagram", name: "Anagram Solver", icon: "🔤", shortDesc: "Finds anagram combinations.", stack: ["Python"] },
+    { id: "audiobook", name: "Audiobook from PDF", icon: "📖", shortDesc: "Convert PDF to spoken audio.", stack: ["Python", "TTS"] },
+    { id: "qrgen", name: "QR Generator", icon: "🔳", shortDesc: "Generate QR codes from text.", stack: ["Python"] },
+    { id: "covid", name: "COVID Notifier", icon: "🔔", shortDesc: "Real-time COVID stats notifier.", stack: ["Python", "API"] },
+    { id: "checkers", name: "Checkers Game", icon: "♟️", shortDesc: "Playable checkers game.", stack: ["Python"] },
+    { id: "fitpulse", name: "FIT PULSE", icon: "💪", shortDesc: "Fitness tracker with gamification.", stack: ["JS", "LocalStorage"] }
+  ];
+
+  const gridContainer = document.getElementById('projects-grid');
+  miniProjects.forEach(proj => {
+    const card = document.createElement('div');
+    card.className = 'mini-card';
+    card.setAttribute('data-project', proj.id);
+    card.innerHTML = `<div class="mini-icon">${proj.icon}</div><h4>${proj.name}</h4><p>${proj.shortDesc}</p><div class="mini-stack">${proj.stack.map(s => `<span>${s}</span>`).join('')}</div>`;
+    card.addEventListener('click', () => openModal(proj.id));
+    gridContainer.appendChild(card);
+  });
+
+  document.getElementById('project-astra').addEventListener('click', () => openModal('astra'));
+  document.getElementById('dreamgirl-exp').addEventListener('click', showDreamGirlReport);
+
+  function openModal(projectId) {
+    const data = projectsData[projectId];
+    if (!data) return;
+    document.getElementById('modal-title').innerText = data.title;
+    document.getElementById('modal-tags').innerHTML = data.tags.map(tag => `<span>${tag}</span>`).join('');
+    document.getElementById('modal-description').innerHTML = data.desc;
+    document.getElementById('project-modal').classList.add('active');
+  }
+
+  document.querySelector('.modal-close').addEventListener('click', () => {
+    document.getElementById('project-modal').classList.remove('active');
+  });
+  window.addEventListener('click', (e) => {
+    const modal = document.getElementById('project-modal');
+    if (e.target === modal) modal.classList.remove('active');
+  });
+
+  // Terminal and animations
+  const lines = ['t1','t2','t3','t4','t5','t6'];
+  let lineIndex = 0;
+  function showNextLine() {
+    if (lineIndex < lines.length) {
+      const el = document.getElementById(lines[lineIndex]);
+      if (el) el.classList.add('visible');
+      lineIndex++;
+      const delay = lineIndex === lines.length ? 700 : 350;
+      setTimeout(showNextLine, delay);
+    } else {
+      setTimeout(() => {
+        const terminal = document.getElementById('terminal');
+        terminal.classList.add('fade-out');
+        setTimeout(() => {
+          terminal.style.display = 'none';
+          document.getElementById('main-nav').classList.add('visible');
+          document.querySelector('.hero').classList.add('visible');
+          initTyping();
+          initScrollReveal();
+        }, 600);
+      }, 400);
+    }
+  }
+  showNextLine();
+
+  function initTyping() {
+    const roles = ['Backend Developer', 'AI / ML Enthusiast', 'Problem Solver', 'Python Engineer'];
+    let i = 0, j = 0;
+    const el = document.querySelector('.typing');
+    if (!el) return;
+    function type() {
+      if (j < roles[i].length) { el.textContent += roles[i][j++]; setTimeout(type, 75); }
+      else { setTimeout(erase, 1400); }
+    }
+    function erase() {
+      if (j > 0) { el.textContent = roles[i].substring(0, --j); setTimeout(erase, 40); }
+      else { i = (i + 1) % roles.length; setTimeout(type, 350); }
+    }
+    type();
+  }
+
+  function initScrollReveal() {
+    const targets = document.querySelectorAll('.section-title, .section-label, .about-text, .skills-grid, .timeline-item, .project-featured, .mini-card, .contact-item, .hero-stats, .about-badges');
+    targets.forEach(el => el.classList.add('reveal'));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('in-view'); observer.unobserve(entry.target); } });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  }
+
+  window.addEventListener('scroll', () => {
+    const sections = document.querySelectorAll('section[id]');
+    const links = document.querySelectorAll('.links a');
+    let current = '';
+    sections.forEach(section => { const sectionTop = section.offsetTop - 120; if (window.scrollY >= sectionTop) current = section.getAttribute('id'); });
+    links.forEach(link => { link.style.color = link.getAttribute('href') === `#${current}` ? 'var(--accent)' : ''; });
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  function downloadResume() {
+    const link = document.createElement('a');
+    link.href = 'Ayush_Dixit_resume_2025.docx';
+    link.download = 'Ayush_Dixit_Resume.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+  const btn1 = document.getElementById('downloadResumeBtn');
+  const btn2 = document.getElementById('downloadFooterResume');
+  if (btn1) btn1.addEventListener('click', (e) => { e.preventDefault(); downloadResume(); });
+  if (btn2) btn2.addEventListener('click', (e) => { e.preventDefault(); downloadResume(); });
+</script>
+</body>
+</html>
